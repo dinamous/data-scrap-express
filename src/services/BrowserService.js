@@ -7,9 +7,9 @@ class BrowserService {
             console.log('Launching Puppeteer browser...');
             try {
                 BrowserService.browserInstance = await puppeteer.launch({
-                    headless: false, // <-- Certifique-se que está false
-                    defaultViewport: null, // Para usar a resolução padrão da tela
-                    args: ['--start-maximized', '--no-sandbox', '--disable-setuid-sandbox'] // Argumentos úteis, especialmente para Linux
+                    headless: false, 
+                    defaultViewport: null, 
+                    args: ['--start-maximized', '--no-sandbox', '--disable-setuid-sandbox'] 
                 });
                 console.log('Puppeteer browser launched successfully.');
             } catch (error) {
