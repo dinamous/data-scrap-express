@@ -1,0 +1,13 @@
+# docker-compose.yml
+services:
+  app:
+    build: .
+    container_name: meu-scraper-api
+    ports:
+      - "3000:3000"
+    volumes:
+      # - .:/app  # COMENTE ESTA LINHA TEMPORARIAMENTE
+      - /app/node_modules
+    environment:
+      PORT: ${PORT}
+    command: npm run dev

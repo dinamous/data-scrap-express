@@ -7,9 +7,11 @@ class BrowserService {
             console.log('Launching Puppeteer browser...');
             try {
                 BrowserService.browserInstance = await puppeteer.launch({
+                    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
                     headless: false, 
                     defaultViewport: null, 
-                    args: ['--start-maximized', '--no-sandbox', '--disable-setuid-sandbox'] 
+                    ignoreDefaultArgs: ['--disable-extensions'],
+                    args: ['--no-sandbox', '--disable-setuid-sandbox','--single-process','--no-zygote'],
                 });
                 console.log('Puppeteer browser launched successfully.');
             } catch (error) {
