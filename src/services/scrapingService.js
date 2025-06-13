@@ -3,8 +3,6 @@ const BrowserService = require('./BrowserService');
 
 class ScrapingService {
   async getRooms(checkin, checkout) {
-    // --- Removida a pré-validação de datas (checkin >= checkout) daqui, pois agora é feita na rota ---
-
     const browser = await BrowserService.getBrowser();
     let page;
 
@@ -17,9 +15,26 @@ class ScrapingService {
 
       await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
 
-      // --- Cenário 1.1: Nova mensagem de "Resposta não esperada" para datas inválidas ---
-      // Mantemos este check, pois é uma validação que o próprio site faz,
-      // e pode haver outros motivos além de checkin > checkout para ela aparecer.
+      // --- Cenário 1.1: Mensagem de "Modifique sua busca" (alert-warning) ---
+      const modifySearchSelector = '.alert.alert-warning strong.d-block';
+      const modifySearchSmallSelector = '.alert.alert-warning small';
+
+      const modifySearchMessage = await page.evaluate((strongSel, smallSel) => {
+        const strongEl = document.querySelector(strongSel);
+        const smallEl = document.querySelector(smallSel);
+        if (strongEl && strongEl.innerText.trim() === 'Modifique sua busca' &&
+          smallEl && smallEl.innerText.trim().includes('está fechado para venda')) {
+          return `${strongEl.innerText.trim()}: ${smallEl.innerText.trim()}`;
+        }
+        return null;
+      }, modifySearchSelector, modifySearchSmallSelector);
+
+      if (modifySearchMessage) {
+        console.warn(`Specific warning message for closed dates detected: "${modifySearchMessage}".`);
+        return { rooms: [], message: modifySearchMessage, type: 'warning' }; 
+      }
+
+      // --- Cenário 1.2: Mensagem de "Resposta não esperada" (alert-danger) ---
       const unexpectedResponseSelector = '.alert.alert-danger strong.d-block';
       const unexpectedResponseSmallSelector = '.alert.alert-danger small';
 
@@ -28,17 +43,17 @@ class ScrapingService {
         const smallEl = document.querySelector(smallSel);
         if (strongEl && strongEl.innerText.trim() === 'Resposta não esperada' &&
           smallEl && smallEl.innerText.trim().includes('Não há quartos disponíveis para esta seleção de datas')) {
-          return `${strongEl.innerText.trim()} ${smallEl.innerText.trim()}`;
+          return `${strongEl.innerText.trim()}: ${smallEl.innerText.trim()}`; 
         }
         return null;
       }, unexpectedResponseSelector, unexpectedResponseSmallSelector);
 
       if (unexpectedResponseMessage) {
-        console.warn(`Specific error message for invalid dates detected by website: "${unexpectedResponseMessage}". Returning empty array.`);
-        return [];
+        console.warn(`Specific error message for invalid dates detected by website: "${unexpectedResponseMessage}".`);
+        return { rooms: [], message: unexpectedResponseMessage, type: 'error' }; 
       }
 
-      // --- Cenário 1.2: Mensagem genérica de "acomodação não encontrada" (seletor h3.aviso.error) ---
+      // --- Cenário 1.3: Mensagem genérica de "acomodação não encontrada" (h3.aviso.error) ---
       const noAvailabilitySelector = 'h3.aviso.error';
       const noAvailabilityMessage = await page.evaluate((selector) => {
         const el = document.querySelector(selector);
@@ -46,8 +61,8 @@ class ScrapingService {
       }, noAvailabilitySelector);
 
       if (noAvailabilityMessage && noAvailabilityMessage.includes('Nenhuma acomodação encontrada para o período')) {
-        console.warn(`Generic "No rooms found" message detected: "${noAvailabilityMessage}". Returning empty array.`);
-        return [];
+        console.warn(`Generic "No rooms found" message detected: "${noAvailabilityMessage}".`);
+        return { rooms: [], message: noAvailabilityMessage, type: 'info' }; 
       }
 
       // --- Cenário 2: Container principal dos quartos não encontrado (timeout) ---
@@ -56,10 +71,10 @@ class ScrapingService {
         console.log('Main room container found. Proceeding to scrape.');
       } catch (selectorError) {
         console.warn('Timeout waiting for .row.borda-cor. No rooms might be available for these dates or element selector changed.', selectorError.message);
-        return [];
+        return { rooms: [], message: 'Timeout waiting for room container. No rooms might be available or element selector changed.', type: 'error' };
       }
 
-      // Sua lógica de scraping original dentro de page.evaluate está aqui, intocada:
+      // Lógica de scraping dos quartos
       const rooms = await page.evaluate(async () => {
         const waitForChildElementWithAttribute = (parentElement, selector, attributeName, timeout = 10000) => {
           return new Promise((resolve) => {
@@ -156,9 +171,10 @@ class ScrapingService {
       // --- Cenário 3: Nenhum quarto raspado mesmo se o container existir ---
       if (!rooms || rooms.length === 0) {
         console.warn('Scraping completed, but no rooms were extracted. The container might be empty or content failed to load.');
+        return { rooms: [], message: 'No rooms were extracted from the page.', type: 'info' };
       }
 
-      return rooms;
+      return { rooms: rooms, message: 'Rooms scraped successfully.', type: 'success' }; 
     } catch (error) {
       console.error('ScrapingService error:', error);
       throw error;

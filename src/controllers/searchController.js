@@ -1,28 +1,30 @@
 // src/controllers/searchController.js
-// const NodeCache = require('node-cache'); // cache desativado
 const scrapingService = require('../services/scrapingService');
-
-// const roomCache = new NodeCache({ stdTTL: 600 }); // cache desativado
 
 exports.search = async (req, res, next) => {
   try {
-    // A validação já foi feita na rota, então não precisamos chamar validationResult(req) aqui.
-    // Os parâmetros checkin e checkout já estão garantidamente válidos.
     const { checkin, checkout } = req.body;
-    // const cacheKey = `${checkin}-${checkout}`; // cache desativado
 
-    // if (roomCache.has(cacheKey)) {
-    //   return res.json(roomCache.get(cacheKey));
-    // }
+    const result = await scrapingService.getRooms(checkin, checkout);
 
-    const rooms = await scrapingService.getRooms(checkin, checkout);
+    // Verifica se há uma mensagem de aviso/erro no resultado
+    if (result.message && result.rooms.length === 0) {
+      
+      let statusCode = 200; 
+      if (result.type === 'error') {
+        statusCode = 404; 
+      } else if (result.type === 'warning') {
+        statusCode = 200; 
+      }
 
-    // roomCache.set(cacheKey, rooms); // cache desativado
+      return res.status(statusCode).json({
+        message: result.message,
+        rooms: result.rooms 
+      });
+    }
 
-    return res.json(rooms);
+    return res.json(result.rooms);
   } catch (error) {
-    // Qualquer erro que ocorra no scrapingService será capturado aqui
-    // e passado para o próximo middleware de tratamento de erros (se você tiver um).
     return next(error);
   }
 };
