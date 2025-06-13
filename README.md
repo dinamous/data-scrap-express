@@ -66,6 +66,21 @@ ou
 yarn test
 ```
 
+# 📄 Documentação da API (Swagger UI)
+Este projeto inclui uma interface interativa de documentação da API utilizando Swagger UI. Você pode explorar todos os endpoints disponíveis, seus parâmetros, modelos de requisição e as possíveis respostas diretamente no seu navegador.
+
+## Para acessar a documentação:
+
+Certifique-se de que o servidor está rodando (veja a seção "Execução" acima).
+Abra seu navegador e navegue para: ˋˋˋhttp://localhost:8080/api-docsˋˋˋ
+Nesta interface, você encontrará:
+
+Detalhamento dos Endpoints: Informações sobre as rotas e os métodos HTTP.
+Modelos de Requisição: Exemplos de como construir o corpo das requisições, com cenários de sucesso e erro.
+Exemplos de Respostas: Visualização das estruturas de dados que a API retorna para diferentes situações (sucesso, validação, avisos, erros).
+Funcionalidade "Try it out": Permite enviar requisições de teste diretamente da interface.
+
+
 # 📡 API Endpoints
 POST /search
 Permite buscar acomodações e preços para um período específico.
@@ -171,3 +186,7 @@ Contribuições são bem-vindas! Abra uma issue ou envie um pull request com mel
 
 # 📄 Licença
 Distribuído sob a licença MIT. Veja o arquivo LICENSE para mais informações.
+
+
+https://psychic-sniffle-5xp67pqvqw624q76-8080.app.github.dev
+
