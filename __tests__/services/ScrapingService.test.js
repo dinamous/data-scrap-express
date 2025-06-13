@@ -1,4 +1,3 @@
-// __tests__/services/ScrapingService.test.js
 jest.mock('../../src/services/BrowserService');
 const ScrapingService = require('../../src/services/scrapingService');
 const BrowserService = require('../../src/services/BrowserService');
