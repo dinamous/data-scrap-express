@@ -1,0 +1,199 @@
+openapi: 3.0.0
+info:
+  title: Asksuite Scraping API
+  version: 1.0.0
+  description: API para buscar disponibilidade de quartos em hotéis com base em datas de check-in e check-out.
+
+servers:
+  - url: http://localhost:8080
+    description: Servidor de Desenvolvimento Local
+
+paths:
+  /search:
+    post:
+      summary: Busca disponibilidade de quartos
+      description: Realiza uma busca por quartos disponíveis em um hotel para um período específico.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                checkin:
+                  type: string
+                  format: date
+                  example: 2025-07-20
+                  description: Data de check-in no formato YYYY-MM-DD. Deve ser uma data futura ou igual à data atual.
+                checkout:
+                  type: string
+                  format: date
+                  example: 2025-07-25
+                  description: Data de check-out no formato YYYY-MM-DD. Deve ser uma data posterior à data de check-in.
+            examples:
+              validSearch:
+                summary: Busca Válida
+                value:
+                  checkin: 2025-07-20
+                  checkout: 2025-07-25
+              invalidCheckinDate:
+                summary: Check-in no Passado
+                value:
+                  checkin: 2024-01-15
+                  checkout: 2025-07-25
+              checkoutBeforeCheckin:
+                summary: Check-out antes do Check-in
+                value:
+                  checkin: 2025-07-20
+                  checkout: 2025-07-18
+      responses:
+        '200':
+          description: Sucesso. Retorna uma lista de quartos disponíveis ou uma mensagem informativa.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Apartamento Luxo
+                    description:
+                      type: string
+                      example: Apartamento espaçoso com vista para o mar e cama king-size.
+                    image:
+                      type: string
+                      format: url
+                      example: https://example.com/images/apartamento_luxo.jpg
+                    prices:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            example: Diária
+                          value:
+                            type: number
+                            format: float
+                            example: 250.00
+              examples:
+                successResponse:
+                  summary: Quartos Encontrados
+                  value:
+                    - name: "Apartamento Luxo"
+                      description: "Apartamento espaçoso com vista para o mar e cama king-size."
+                      image: "https://example.com/images/apartamento_luxo.jpg"
+                      prices:
+                        - type: "Diária"
+                          value: 250.00
+                    - name: "Suíte Premium"
+                      description: "Suíte elegante com banheira de hidromassagem e serviço de quarto 24h."
+                      image: "https://example.com/images/suite_premium.jpg"
+                      prices:
+                        - type: "Diária"
+                          value: 400.00
+                warningNoRoomsFound:
+                  summary: Sem Acomodação Encontrada (Info Genérica)
+                  value:
+                    message: "Nenhuma acomodação encontrada para o período selecionado."
+                    rooms: []
+                    type: "info"
+                warningClosedForSale:
+                  summary: Modifique sua busca (Alerta de Venda Fechada)
+                  value:
+                    message: "Modifique sua busca: Período selecionado está fechado para venda."
+                    rooms: []
+                    type: "warning"
+        '400':
+          description: Requisição inválida devido a erros de validação dos parâmetros.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        value:
+                          type: string
+                        msg:
+                          type: string
+                        path:
+                          type: string
+                        location:
+                          type: string
+              examples:
+                invalidDateFormat:
+                  summary: Erro de Formato de Data
+                  value:
+                    errors:
+                      - type: "field"
+                        value: "2025/07/20"
+                        msg: "checkin deve ser YYYY-MM-DD"
+                        path: "checkin"
+                        location: "body"
+                checkinInPast:
+                  summary: Check-in no Passado
+                  value:
+                    errors:
+                      - type: "field"
+                        value: "2024-01-15"
+                        msg: "checkin deve ser uma data futura ou igual a hoje"
+                        path: "checkin"
+                        location: "body"
+                checkoutBeforeCheckin:
+                  summary: Checkout antes do Checkin
+                  value:
+                    errors:
+                      - type: "field"
+                        value: "2025-07-18"
+                        msg: "checkout deve ser uma data posterior ao checkin"
+                        path: "checkout"
+                        location: "body"
+        '404':
+          description: Erro. Não há quartos disponíveis para a seleção de datas, ou timeout.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  rooms:
+                    type: array
+                    items: {}
+                  type:
+                    type: string
+              examples:
+                errorNoRoomsAvailable:
+                  summary: Resposta Não Esperada (Sem Quartos Disponíveis)
+                  value:
+                    message: "Resposta não esperada: Não há quartos disponíveis para esta seleção de datas."
+                    rooms: []
+                    type: "error"
+                errorTimeout:
+                  summary: Timeout na Busca
+                  value:
+                    message: "Timeout waiting for room container. No rooms might be available or element selector changed."
+                    rooms: []
+                    type: "error"
+        '500':
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples:
+                internalServerError:
+                  summary: Erro Interno
+                  value:
+                    message: "Erro interno do servidor."
