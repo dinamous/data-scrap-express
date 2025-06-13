@@ -1,4 +1,4 @@
-const { validationResult } = require('express-validator');
+// src/controllers/searchController.js
 // const NodeCache = require('node-cache'); // cache desativado
 const scrapingService = require('../services/scrapingService');
 
@@ -6,11 +6,8 @@ const scrapingService = require('../services/scrapingService');
 
 exports.search = async (req, res, next) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
+    // A validação já foi feita na rota, então não precisamos chamar validationResult(req) aqui.
+    // Os parâmetros checkin e checkout já estão garantidamente válidos.
     const { checkin, checkout } = req.body;
     // const cacheKey = `${checkin}-${checkout}`; // cache desativado
 
@@ -24,6 +21,8 @@ exports.search = async (req, res, next) => {
 
     return res.json(rooms);
   } catch (error) {
+    // Qualquer erro que ocorra no scrapingService será capturado aqui
+    // e passado para o próximo middleware de tratamento de erros (se você tiver um).
     return next(error);
   }
 };
