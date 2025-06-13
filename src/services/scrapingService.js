@@ -1,3 +1,4 @@
+// src/services/ScrapingService.js
 const BrowserService = require('./BrowserService');
 
 class ScrapingService {
@@ -14,16 +15,67 @@ class ScrapingService {
 
       await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
 
+      // --- Cenário 1.1: Mensagem de "Modifique sua busca" (alert-warning) ---
+      const modifySearchSelector = '.alert.alert-warning strong.d-block';
+      const modifySearchSmallSelector = '.alert.alert-warning small';
+
+      const modifySearchMessage = await page.evaluate((strongSel, smallSel) => {
+        const strongEl = document.querySelector(strongSel);
+        const smallEl = document.querySelector(smallSel);
+        if (strongEl && strongEl.innerText.trim() === 'Modifique sua busca' &&
+          smallEl && smallEl.innerText.trim().includes('está fechado para venda')) {
+          return `${strongEl.innerText.trim()}: ${smallEl.innerText.trim()}`;
+        }
+        return null;
+      }, modifySearchSelector, modifySearchSmallSelector);
+
+      if (modifySearchMessage) {
+        console.warn(`Specific warning message for closed dates detected: "${modifySearchMessage}".`);
+        return { rooms: [], message: modifySearchMessage, type: 'warning' }; 
+      }
+
+      // --- Cenário 1.2: Mensagem de "Resposta não esperada" (alert-danger) ---
+      const unexpectedResponseSelector = '.alert.alert-danger strong.d-block';
+      const unexpectedResponseSmallSelector = '.alert.alert-danger small';
+
+      const unexpectedResponseMessage = await page.evaluate((strongSel, smallSel) => {
+        const strongEl = document.querySelector(strongSel);
+        const smallEl = document.querySelector(smallSel);
+        if (strongEl && strongEl.innerText.trim() === 'Resposta não esperada' &&
+          smallEl && smallEl.innerText.trim().includes('Não há quartos disponíveis para esta seleção de datas')) {
+          return `${strongEl.innerText.trim()}: ${smallEl.innerText.trim()}`; 
+        }
+        return null;
+      }, unexpectedResponseSelector, unexpectedResponseSmallSelector);
+
+      if (unexpectedResponseMessage) {
+        console.warn(`Specific error message for invalid dates detected by website: "${unexpectedResponseMessage}".`);
+        return { rooms: [], message: unexpectedResponseMessage, type: 'error' }; 
+      }
+
+      // --- Cenário 1.3: Mensagem genérica de "acomodação não encontrada" (h3.aviso.error) ---
+      const noAvailabilitySelector = 'h3.aviso.error';
+      const noAvailabilityMessage = await page.evaluate((selector) => {
+        const el = document.querySelector(selector);
+        return el ? el.innerText.trim() : null;
+      }, noAvailabilitySelector);
+
+      if (noAvailabilityMessage && noAvailabilityMessage.includes('Nenhuma acomodação encontrada para o período')) {
+        console.warn(`Generic "No rooms found" message detected: "${noAvailabilityMessage}".`);
+        return { rooms: [], message: noAvailabilityMessage, type: 'info' }; 
+      }
+
+      // --- Cenário 2: Container principal dos quartos não encontrado (timeout) ---
       try {
         await page.waitForSelector('.row.borda-cor', { timeout: 15000 });
         console.log('Main room container found. Proceeding to scrape.');
       } catch (selectorError) {
-        console.warn('Timeout waiting for .row.borda-cor. No rooms might be available for these dates or element selector changed.');
-        return [];
+        console.warn('Timeout waiting for .row.borda-cor. No rooms might be available for these dates or element selector changed.', selectorError.message);
+        return { rooms: [], message: 'Timeout waiting for room container. No rooms might be available or element selector changed.', type: 'error' };
       }
 
+      // Lógica de scraping dos quartos
       const rooms = await page.evaluate(async () => {
-        // --- FUNÇÕES AUXILIARES DE ESPERA DENTRO DO CONTEXTO DO NAVEGADOR ---
         const waitForChildElementWithAttribute = (parentElement, selector, attributeName, timeout = 10000) => {
           return new Promise((resolve) => {
             const startTime = Date.now();
@@ -56,9 +108,7 @@ class ScrapingService {
           });
         };
 
-        // --- INÍCIO DA LÓGICA DE SCRAPING ---
         const roomElements = document.querySelectorAll('.row.borda-cor');
-
         const scrapedRooms = await Promise.all(Array.from(roomElements).map(async (room) => {
           const name = room.querySelector('h3[data-campo="titulo"]')?.innerText.trim() || '';
           const description = room.querySelector('.descricao')?.innerText.trim() || '';
@@ -72,12 +122,11 @@ class ScrapingService {
             const pricesElements = pricesContainer.querySelectorAll('div.row.tarifa');
 
             prices = await Promise.all(Array.from(pricesElements).map(async (priceElement) => {
-              const type = priceElement.querySelector('h4[data-campo="nome"]')?.innerText.trim() || ''; // Renomeado de nome para type
+              const type = priceElement.querySelector('h4[data-campo="nome"]')?.innerText.trim() || '';
 
               let valorRaw = null;
-              let value = null; 
+              let value = null;
 
-              // TENTATIVA 1 (Prioridade): Pegar o valor do 'data-original-title' do tooltip
               const tooltipElement = await waitForChildElementWithAttribute(priceElement, 'span.tarifaDetalhes', 'data-original-title', 10000);
 
               if (tooltipElement) {
@@ -93,7 +142,6 @@ class ScrapingService {
                   valorRaw = totalSum.toFixed(2).replace('.', ',');
                 }
               } else {
-                // TENTATIVA 2 (Fallback): Pegar o valor do elemento <b>
                 const valorElement = await waitForChildElementContent(priceElement, 'b[data-campo="valor"]', 5000);
 
                 if (valorElement) {
@@ -101,7 +149,6 @@ class ScrapingService {
                 }
               }
 
-              // Higienizaçao 
               if (valorRaw && valorRaw.trim().length > 0) {
                 const valorLimpo = valorRaw.replace(/[R$\s.]/g, '').replace(',', '.');
                 const parsedValue = parseFloat(valorLimpo);
@@ -111,22 +158,30 @@ class ScrapingService {
                 }
               }
 
-              return { type, value }; 
+              return { type, value };
             }));
           }
 
-          return { name, description, image, prices }; 
+          return { name, description, image, prices };
         }));
 
         return scrapedRooms;
       });
 
-      return rooms;
+      // --- Cenário 3: Nenhum quarto raspado mesmo se o container existir ---
+      if (!rooms || rooms.length === 0) {
+        console.warn('Scraping completed, but no rooms were extracted. The container might be empty or content failed to load.');
+        return { rooms: [], message: 'No rooms were extracted from the page.', type: 'info' };
+      }
+
+      return { rooms: rooms, message: 'Rooms scraped successfully.', type: 'success' }; 
     } catch (error) {
       console.error('ScrapingService error:', error);
       throw error;
     } finally {
-      // Garante que o navegador seja fechado
+      if (page && !page.isClosed()) {
+        await page.close();
+      }
       await BrowserService.closeBrowser(browser);
     }
   }
