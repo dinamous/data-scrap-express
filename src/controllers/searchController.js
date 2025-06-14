@@ -1,4 +1,3 @@
-// src/controllers/searchController.js
 const scrapingService = require('../services/scrapingService');
 
 exports.search = async (req, res, next) => {
