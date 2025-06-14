@@ -1,13 +1,10 @@
-require('dotenv').config();
-const express = require('express');
-const router = require('./src/routes/router.js');
+const app = require('./src/app');
 
-const app = express();
-app.use(express.json());
+const PORT = process.env.PORT || 3000;
 
-const port = process.env.PORT || 8080;
-
-app.use('/', router);
-app.listen(port, () => {
-    console.log(`Listening on port ${port}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`);
+    console.log(`Swagger UI disponível em http://localhost:${PORT}/api-docs`);
+  });
+}

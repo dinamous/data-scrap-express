@@ -1,102 +1,192 @@
-# Test Dev Asksuite
+# 🏨 Asksuite FastHotel Scraper API
+Este projeto implementa uma API RESTful para raspar (scrape) informações de acomodações e preços do site de reservas do FastHotel (um ambiente de demonstração da Asksuite), com base em datas de check-in e check-out fornecidas.
 
-Hey! Glad you're here.
-I'm going to explain exactly what you'll have to implement in this test and what we expect as outcome.
+A API é construída com Node.js, Express e Puppeteer, e foi projetada para ser robusta no tratamento de diversos cenários de entrada e respostas do site-alvo.
 
-First of all, we have this nice express.js boilerplate project to assist you so you don't have to create everything from scratch.
+# ⚙️ Tecnologias Utilizadas
+Node.js: Plataforma de execução JavaScript.
 
-## Briefing
-The traveller comes to our bot and asks for "Price quotation". Then the bot asks for the dates the traveller wants to 
-stay at the bot's hotel.
-At the moment the traveller fills the requested information the bot needs to search the prices for each room available in the check-in/check-out 
-timeframe.
+Express: Framework web para construir a API.
 
-You will have to implement the API responsible for doing the searching part.
-The necessary information for the crawler is under the [Assets](#assets) session
+Puppeteer: Biblioteca que controla o Chrome/Chromium via DevTools Protocol.
 
-## What you'll need to do:
-* Create a POST endpoint "/search"
-    * The expected payload is:
-    
-        <pre>
-        {
-            "checkin": "YYYY-MM-DD", // Check-in date
-            "checkout": "YYYY-MM-DD" // Check-out date
-        }
-        </pre>
-        
-       Example
-       
-        <pre>
-        {
-            "checkin": "2021-07-01", 
-            "checkout": "2021-07-03"
-        }
-        </pre>
-        
-    * The expected result is an array of rooms:
-    
-        <pre>
-        [{
-            "name": string, // Room name
-            "description": string,  // Room description
-            "price": string, // Room daily price
-            "image": string, // Room main photo
-        }]
-        </pre>
-        
-        Example
-        
-        <pre>
-        [{
-            "name": "STUDIO CASAL",
-            "description": "Apartamentos localizados no prédio principal do Resort, próximos a recepção e a área de convivência, com vista para área de estacionamento não possuem varanda. Acomoda até 1 adulto e 1 criança ou 2 adultos", 
-            "price": "R$ 1.092,00",
-            "image": "https://s3.sa-east-1.amazonaws.com/fasthotel.cdn/quartosTipo/214-1-1632320429599483292-thumb.jpg"
-        },
-        {
-            "name": "CABANA",
-            "description": "Apartamentos espalhados pelos jardins do Resort, com vista jardim possuem varanda. Acomoda até 4 adultos ou 3 adultos e 1 criança ou 2 adultos e 2 criança ou 1 adulto e 3 crianças, em duas camas casal.", 
-            "price": "R$ 1.321,00",
-            "image": "https://s3.sa-east-1.amazonaws.com/fasthotel.cdn/quartosTipo/214-1-1632320429599483292-thumb.jpg"
-        }]
-        </pre>
-        
-To achieve this result you may:
+express-validator: Middleware para validação de requisições.
 
-* With puppeteer, go to the [https://reservations.fasthotel.me/188/214?entrada=2024-08-25&saida=2024-08-27&adultos=1#acomodacoes](#assets)
-* Retrieve the needed information to assemble the payload using web crawling methods
+Jest: Framework de testes para JavaScript.
 
-## Environment
-* Node 10+
-* Dotenv setup
+# 🧱 Arquitetura do Projeto
+```
+asks-scraper-api/
+├── server.js # Ponto de entrada da aplicação
+├── src/
+│ ├── routes/
+│ │ └── router.js # Define rotas e validações
+│ ├── controllers/
+│ │ └── searchController.js # Controlador principal da busca
+│ ├── services/
+│ │ ├── ScrapingService.js # Lógica principal do scraping
+│ │ └── BrowserService.js # Gerenciamento do navegador Puppeteer
+│ └── tests/ # Testes unitários e de integração
+```
 
-Already installed: `express` `puppeteer` `dotenv`
+# 🚀 Como Rodar o Projeto
 
-**_Feel free to add any lib you find relevant to your test._**
+✅ Pré-requisitos
+Node.js (v14 ou superior)
+
+npm ou yarn
+
+# 🔧 Instalação
+```bash
+git clone https://github.com/dinamous/data-scrap-express-api.git
+cd asks-scraper-api
+npm install
+```
+ou
+```
+yarn install
+```
+
+# ▶️ Execução
+```bash
+npm start
+```
+ou
+```
+yarn start
+```
+
+A aplicação estará disponível em: http://localhost:3000
+
+# 🧪 Testes
+```bash
+npm test
+
+ou
+yarn test
+```
+
+# 📄 Documentação da API (Swagger UI)
+Este projeto inclui uma interface interativa de documentação da API utilizando Swagger UI. Você pode explorar todos os endpoints disponíveis, seus parâmetros, modelos de requisição e as possíveis respostas diretamente no seu navegador.
+
+## Para acessar a documentação:
+
+Certifique-se de que o servidor está rodando (veja a seção "Execução" acima).
+Abra seu navegador e navegue para: ˋˋˋhttp://localhost:8080/api-docsˋˋˋ
+Nesta interface, você encontrará:
+
+Detalhamento dos Endpoints: Informações sobre as rotas e os métodos HTTP.
+Modelos de Requisição: Exemplos de como construir o corpo das requisições, com cenários de sucesso e erro.
+Exemplos de Respostas: Visualização das estruturas de dados que a API retorna para diferentes situações (sucesso, validação, avisos, erros).
+Funcionalidade "Try it out": Permite enviar requisições de teste diretamente da interface.
 
 
-## Running
-* Install dependencies with: `npm install`
-* Run as dev: `npm run dev`
+# 📡 API Endpoints
+POST /search
+Permite buscar acomodações e preços para um período específico.
 
-Default port is set to `8080`
+## 🔸 Requisição
+URL: /search
 
-## Assets
-* Crawl URL sample (change dates): 
-<pre>https://reservations.fasthotel.me/188/214?entrada=2024-08-25&saida=2024-08-27&adultos=1#acomodacoes</pre>
-* Help images:
-![sample_1](assets/sample_1.png)
+Método: POST
 
-## Test rating
-What do we evaluate with this test?
+Body (JSON):
 
-* Dev's capacity of:
-    * Self-learning
-    * Working with node
-    * Understanding an existent project
-* Dev's code quality:
-    * Clear and maintainable code
-    * Coding structure
-    * Changes that don't break easily
+```json
+{
+"checkin": "YYYY-MM-DD",
+"checkout": "YYYY-MM-DD"
+}
+```
+
+## 🔸 Exemplo com curl
+```bash
+curl -X POST http://localhost:3000/search
+-H 'Content-Type: application/json'
+-d '{
+"checkin": "2025-07-01",
+"checkout": "2025-07-03"
+}'
+```
+
+## ✅ Respostas da API
+🔹 200 OK – Sucesso
+```json
+[
+    {
+    "name": "STUDIO CASAL",
+    "description": "Apartamentos localizados no prédio principal do Resort...",
+    "image": "https://s3...jpg",
+    "prices": [
+        { "type": "Tarifa Flexível", "value": 1092.00 },
+        { "type": "Tarifa com Café", "value": 1200.00 }
+    ]
+    }
+]
+```
+
+🔸 200 OK – Aviso ou Nenhum Quarto
+```json
+{
+"message": "Nenhuma acomodação encontrada para o período.",
+"rooms": []
+}
+```
+
+🔸 400 Bad Request – Erros de Validação
+```json
+{
+"errors": [
+    {
+    "type": "field",
+    "msg": "checkout deve ser uma data posterior ao checkin",
+    "path": "checkout"
+    }
+]
+}
+```
+
+🔸 404 Not Found – Erros do Site
+```json
+{
+"message": "Resposta não esperada: Não há quartos disponíveis para esta seleção de datas",
+"rooms": []
+}
+```
+
+🔸 500 Internal Server Error
+```json
+{
+"error": "Um erro inesperado ocorreu no servidor.",
+"details": "Mensagem específica em ambiente de desenvolvimento"
+}
+```
+
+# 🔍 Tratamento de Cenários Específicos
+- Validação de entrada (router.js)
+
+- Formato de data (YYYY-MM-DD)
+
+- checkin deve ser hoje ou no futuro
+
+- checkout deve ser após checkin
+
+- Mensagens do site detectadas (ScrapingService.js)
+
+- "Modifique sua busca": datas fechadas
+
+- "Nenhuma acomodação": site sem disponibilidade
+
+- Timeout do seletor: HTML pode ter mudado
+
+- Tratamento de exceções com try/catch em todas as camadas críticas
+
+# 🤝 Contribuição
+Contribuições são bem-vindas! Abra uma issue ou envie um pull request com melhorias, correções ou ideias.
+
+# 📄 Licença
+Distribuído sob a licença MIT. Veja o arquivo LICENSE para mais informações.
+
+
+https://psychic-sniffle-5xp67pqvqw624q76-8080.app.github.dev
 
