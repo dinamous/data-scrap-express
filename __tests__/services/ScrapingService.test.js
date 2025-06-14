@@ -118,7 +118,7 @@ describe('ScrapingService', () => {
     const result = await ScrapingService.getRooms('2025-06-15', '2025-06-16');
     expect(result).toEqual({
       rooms: [],
-      message: 'No rooms were extracted from the page.',
+      message: 'No rooms were extracted from the page or valid rooms found after filtering.',
       type: 'info',
     });
   });

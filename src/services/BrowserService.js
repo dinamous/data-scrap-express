@@ -1,4 +1,3 @@
-// BrowserService.js
 const puppeteer = require('puppeteer');
 
 class BrowserService {
