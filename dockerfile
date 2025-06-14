@@ -1,25 +1,67 @@
-# Dockerfile
-# Use a imagem base Puppeteer que já vem com o Chrome e as dependências
-FROM ghcr.io/puppeteer/puppeteer:latest
+# Puppeteer recommends using the Node LTS version, but you can choose what fits your needs
+FROM node:lts-slim
 
-# Define o diretório de trabalho dentro do container
+# Create app directory
 WORKDIR /app
 
-# OBRIGATÓRIO: Mudar para o usuário 'pptruser' antes de copiar/instalar dependências.
-# Este usuário tem as permissões corretas no ambiente do container.
-USER pptruser 
-
-# Copie package.json e package-lock.json (se houver)
+# Install app dependencies
+# Copies package.json and package-lock.json to Docker environment
 COPY package*.json ./
 
-# Instale as dependências
-RUN npm install
+# Install puppeteer, don't install Chromium as it will be installed manually later
+RUN npm install 
 
-# Copie o restante do código da aplicação
+# Copy app source to Docker environment
 COPY . .
 
-# Exponha a porta que o Express está usando (ex: 3000)
+# You can expose any port your app is configured to use, like 8080 for example
 EXPOSE 3000
 
-# Comando para iniciar a aplicação
-CMD ["npm", "start"]
+# Installing Chromium dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    fontconfig \
+    gconf-service \
+    libappindicator1 \
+    libasound2 \
+    libatk1.0-0 \
+    libc6 \
+    libcups2 \
+    libdbus-1-3 \
+    libexpat1 \
+    libfontconfig1 \
+    libgcc1 \
+    libgconf-2-4 \
+    libgbm-dev \
+    libgdk-pixbuf2.0-0 \
+    libglib2.0-0 \
+    libgtk-3-0 \
+    libicu-dev \
+    libjpeg-dev \
+    libnspr4 \
+    libnss3 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libpng-dev \
+    libstdc++6 \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxrandr2 \
+    libxrender1 \
+    libxss1 \
+    libxtst6 \
+    locales \
+    lsb-release \
+    wget \
+    xdg-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Run your application when container launches
+CMD [ "node", "server.js" ]
