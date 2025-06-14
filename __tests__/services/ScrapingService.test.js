@@ -40,7 +40,7 @@ describe('ScrapingService', () => {
 
   test('deve retornar erro "Resposta não esperada"', async () => {
     mockPage.evaluate
-      .mockImplementationOnce(() => null) // skip modifySearchMessage
+      .mockImplementationOnce(() => null) 
       .mockImplementationOnce(() =>
         'Resposta não esperada: Não há quartos disponíveis para esta seleção de datas'
       );
@@ -54,8 +54,8 @@ describe('ScrapingService', () => {
 
   test('deve retornar mensagem "Nenhuma acomodação encontrada"', async () => {
     mockPage.evaluate
-      .mockImplementationOnce(() => null) // modifySearchMessage
-      .mockImplementationOnce(() => null) // unexpectedResponseMessage
+      .mockImplementationOnce(() => null)
+      .mockImplementationOnce(() => null) 
       .mockImplementationOnce(() => 'Nenhuma acomodação encontrada para o período');
     const result = await ScrapingService.getRooms('2025-06-15', '2025-06-16');
     expect(result).toEqual({
@@ -118,7 +118,7 @@ describe('ScrapingService', () => {
     const result = await ScrapingService.getRooms('2025-06-15', '2025-06-16');
     expect(result).toEqual({
       rooms: [],
-      message: 'No rooms were extracted from the page.',
+      message: 'No rooms were extracted from the page or valid rooms found after filtering.',
       type: 'info',
     });
   });

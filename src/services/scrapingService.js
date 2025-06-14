@@ -177,7 +177,7 @@ class ScrapingService {
         return scrapedRooms;
       });
 
-      // --- Cenário 3: Nenhum quarto raspado mesmo se o container existir ---
+      // --- Cenário 3: Nenhum quarto scraped mesmo se o container existir ---
       if (!rooms || rooms.length === 0) {
         console.warn('Scraping completed, but no valid rooms were extracted after filtering. The container might be empty or content failed to load.');
         return { rooms: [], message: 'No rooms were extracted from the page or valid rooms found after filtering.', type: 'info' };
@@ -191,7 +191,6 @@ class ScrapingService {
       if (page && !page.isClosed()) {
         await page.close();
       }
-      // Certifique-se de que o browser só feche após todas as páginas serem fechadas ou se não houver mais uso
       await BrowserService.closeBrowser(browser);
     }
   }
