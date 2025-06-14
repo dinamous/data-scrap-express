@@ -1,9 +1,9 @@
-# 🏨 Asksuite FastHotel Scraper API
+## 🏨 Asksuite FastHotel Scraper API
 Este projeto implementa uma API RESTful para raspar (scrape) informações de acomodações e preços do site de reservas do FastHotel (um ambiente de demonstração da Asksuite), com base em datas de check-in e check-out fornecidas.
 
 A API é construída com Node.js, Express e Puppeteer, e foi projetada para ser robusta no tratamento de diversos cenários de entrada e respostas do site-alvo.
 
-# ⚙️ Tecnologias Utilizadas
+## ⚙️ Tecnologias Utilizadas
 Node.js: Plataforma de execução JavaScript.
 
 Express: Framework web para construir a API.
@@ -14,7 +14,7 @@ express-validator: Middleware para validação de requisições.
 
 Jest: Framework de testes para JavaScript.
 
-# 🧱 Arquitetura do Projeto
+## 🧱 Arquitetura do Projeto
 ```
 asks-scraper-api/
 ├── server.js # Ponto de entrada da aplicação
@@ -29,17 +29,19 @@ asks-scraper-api/
 │ └── tests/ # Testes unitários e de integração
 ```
 
-# 🚀 Como Rodar o Projeto
+## 🚀 Como Rodar o Projeto
 
 ✅ Pré-requisitos
 Node.js (v14 ou superior)
 
-npm ou yarn
+```npm``` ou ```yarn```
 
-# 🔧 Instalação
+## 🔧 Instalação
 ```bash
 git clone https://github.com/dinamous/data-scrap-express-api.git
 cd asks-scraper-api
+```
+```
 npm install
 ```
 ou
@@ -47,7 +49,9 @@ ou
 yarn install
 ```
 
-# ▶️ Execução
+## ▶️ Execução
+Para uma execução da aplicação direto da máquina, pode-se fazer o uso do script a baixo, porém recomenda-se fazer o uso da aplicação por meio do Docker.
+
 ```bash
 npm start
 ```
@@ -58,7 +62,35 @@ yarn start
 
 A aplicação estará disponível em: http://localhost:3000
 
-# 🧪 Testes
+
+# 🐳 Rodando com Docker
+Você pode rodar esta aplicação usando Docker, que é a forma recomendada para garantir que todas as dependências e configurações de ambiente sejam gerenciadas corretamente.
+
+### 🏗️ Construa a Imagem Docker
+Primeiro, você precisa construir a imagem Docker a partir do Dockerfile fornecido. Navegue até a pasta raiz do projeto onde o Dockerfile está localizado e execute:
+```
+npm run docker-create
+```
+ Ou, se preferir usar comandos Docker puros:
+
+``` 
+docker build -t scrap-docker . 
+```
+
+Este comando construirá a imagem e a identificará como scrap-docker.
+
+### 🚀 Execute o Container Docker
+Com a imagem construída, você pode iniciar a aplicação em um container Docker. Este comando fará o mapeamento da porta 3000 da sua máquina (host) para a porta 3000 dentro do container:
+
+```
+npm run docker
+```
+
+ Ou, se preferir usar comandos Docker puros:
+ ```
+ docker run -p 3000:3000 scrap-docker
+ ```
+## 🧪 Testes
 ```bash
 npm test
 
@@ -66,24 +98,26 @@ ou
 yarn test
 ```
 
-# 📄 Documentação da API (Swagger UI)
+## 📄 Documentação da API (Swagger UI)
 Este projeto inclui uma interface interativa de documentação da API utilizando Swagger UI. Você pode explorar todos os endpoints disponíveis, seus parâmetros, modelos de requisição e as possíveis respostas diretamente no seu navegador.
 
 ## Para acessar a documentação:
 
 Certifique-se de que o servidor está rodando (veja a seção "Execução" acima).
-Abra seu navegador e navegue para: ˋˋˋhttp://localhost:8080/api-docsˋˋˋ
+Abra seu navegador e navegue para: 
+
+`http://localhost:3000/api-docs`
+
 Nesta interface, você encontrará:
 
-Detalhamento dos Endpoints: Informações sobre as rotas e os métodos HTTP.
-Modelos de Requisição: Exemplos de como construir o corpo das requisições, com cenários de sucesso e erro.
-Exemplos de Respostas: Visualização das estruturas de dados que a API retorna para diferentes situações (sucesso, validação, avisos, erros).
-Funcionalidade "Try it out": Permite enviar requisições de teste diretamente da interface.
+- Detalhamento dos Endpoints: Informações sobre as rotas e os métodos HTTP.
+- Modelos de Requisição: Exemplos de como construir o corpo das requisições, com cenários de sucesso e erro.
+- Exemplos de Respostas: Visualização das estruturas de dados que a API retorna para diferentes situações (sucesso, validação, avisos, erros).
 
+## 📡 API Endpoints
 
-# 📡 API Endpoints
-POST /search
-Permite buscar acomodações e preços para um período específico.
+### POST /search
+- Permite buscar acomodações e preços para um período específico.
 
 ## 🔸 Requisição
 URL: /search
@@ -99,7 +133,7 @@ Body (JSON):
 }
 ```
 
-## 🔸 Exemplo com curl
+### 🔸 Exemplo com curl
 ```bash
 curl -X POST http://localhost:3000/search
 -H 'Content-Type: application/json'
@@ -109,7 +143,7 @@ curl -X POST http://localhost:3000/search
 }'
 ```
 
-## ✅ Respostas da API
+### ✅ Respostas da API
 🔹 200 OK – Sucesso
 ```json
 [
@@ -162,7 +196,7 @@ curl -X POST http://localhost:3000/search
 }
 ```
 
-# 🔍 Tratamento de Cenários Específicos
+## 🔍 Tratamento de Cenários Específicos
 - Validação de entrada (router.js)
 
 - Formato de data (YYYY-MM-DD)
@@ -181,12 +215,5 @@ curl -X POST http://localhost:3000/search
 
 - Tratamento de exceções com try/catch em todas as camadas críticas
 
-# 🤝 Contribuição
+## 🤝 Contribuição
 Contribuições são bem-vindas! Abra uma issue ou envie um pull request com melhorias, correções ou ideias.
-
-# 📄 Licença
-Distribuído sob a licença MIT. Veja o arquivo LICENSE para mais informações.
-
-
-https://psychic-sniffle-5xp67pqvqw624q76-8080.app.github.dev
-

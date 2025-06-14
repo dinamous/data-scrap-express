@@ -5,12 +5,12 @@ info:
   description: API para buscar disponibilidade de quartos em hotéis com base em datas de check-in e check-out.
 
 servers:
-  - url: http://localhost:8080
+  - url: http://localhost:3000
     description: Servidor de Desenvolvimento Local
 
 paths:
   /search:
-    post:
+    post:  
       summary: Busca disponibilidade de quartos
       description: Realiza uma busca por quartos disponíveis em um hotel para um período específico.
       requestBody:
@@ -22,20 +22,22 @@ paths:
               properties:
                 checkin:
                   type: string
-                  format: date
-                  example: 2025-07-20
+                  format: date 
+                  pattern: "^\\d{4}-\\d{2}-\\d{2}$" 
+                  example: 2025-07-20 
                   description: Data de check-in no formato YYYY-MM-DD. Deve ser uma data futura ou igual à data atual.
                 checkout:
                   type: string
-                  format: date
-                  example: 2025-07-25
+                  format: date 
+                  pattern: "^\\d{4}-\\d{2}-\\d{2}$" 
+                  example: 2025-07-25 
                   description: Data de check-out no formato YYYY-MM-DD. Deve ser uma data posterior à data de check-in.
             examples:
               validSearch:
                 summary: Busca Válida
                 value:
-                  checkin: 2025-07-20
-                  checkout: 2025-07-25
+                  checkin: 2025-06-27 
+                  checkout: 2025-06-30 
               invalidCheckinDate:
                 summary: Check-in no Passado
                 value:
