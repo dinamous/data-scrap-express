@@ -31,7 +31,7 @@ class ScrapingService {
 
       if (modifySearchMessage) {
         console.warn(`Specific warning message for closed dates detected: "${modifySearchMessage}".`);
-        return { rooms: [], message: modifySearchMessage, type: 'warning' }; 
+        return { rooms: [], message: modifySearchMessage, type: 'warning' };
       }
 
       // --- Cenário 1.2: Mensagem de "Resposta não esperada" (alert-danger) ---
@@ -43,14 +43,14 @@ class ScrapingService {
         const smallEl = document.querySelector(smallSel);
         if (strongEl && strongEl.innerText.trim() === 'Resposta não esperada' &&
           smallEl && smallEl.innerText.trim().includes('Não há quartos disponíveis para esta seleção de datas')) {
-          return `${strongEl.innerText.trim()}: ${smallEl.innerText.trim()}`; 
+          return `${strongEl.innerText.očtrim()}: ${smallEl.innerText.trim()}`;
         }
         return null;
       }, unexpectedResponseSelector, unexpectedResponseSmallSelector);
 
       if (unexpectedResponseMessage) {
         console.warn(`Specific error message for invalid dates detected by website: "${unexpectedResponseMessage}".`);
-        return { rooms: [], message: unexpectedResponseMessage, type: 'error' }; 
+        return { rooms: [], message: unexpectedResponseMessage, type: 'error' };
       }
 
       // --- Cenário 1.3: Mensagem genérica de "acomodação não encontrada" (h3.aviso.error) ---
@@ -62,7 +62,7 @@ class ScrapingService {
 
       if (noAvailabilityMessage && noAvailabilityMessage.includes('Nenhuma acomodação encontrada para o período')) {
         console.warn(`Generic "No rooms found" message detected: "${noAvailabilityMessage}".`);
-        return { rooms: [], message: noAvailabilityMessage, type: 'info' }; 
+        return { rooms: [], message: noAvailabilityMessage, type: 'info' };
       }
 
       // --- Cenário 2: Container principal dos quartos não encontrado (timeout) ---
@@ -109,7 +109,7 @@ class ScrapingService {
         };
 
         const roomElements = document.querySelectorAll('.row.borda-cor');
-        const scrapedRooms = await Promise.all(Array.from(roomElements).map(async (room) => {
+        let scrapedRooms = await Promise.all(Array.from(roomElements).map(async (room) => {
           const name = room.querySelector('h3[data-campo="titulo"]')?.innerText.trim() || '';
           const description = room.querySelector('.descricao')?.innerText.trim() || '';
           const imageEl = room.querySelector('.flexslider img');
@@ -165,16 +165,25 @@ class ScrapingService {
           return { name, description, image, prices };
         }));
 
+        // --- Adição: Filtrar quartos vazios ---
+        scrapedRooms = scrapedRooms.filter(room => {
+          // Um quarto é considerado válido se tiver um nome
+          // e/ou se tiver preços válidos (value > 0 para qualquer preço)
+          const hasName = room.name && room.name.trim().length > 0;
+          const hasValidPrice = room.prices.some(price => typeof price.value === 'number' && price.value > 0);
+          return hasName || hasValidPrice;
+        });
+
         return scrapedRooms;
       });
 
       // --- Cenário 3: Nenhum quarto raspado mesmo se o container existir ---
       if (!rooms || rooms.length === 0) {
-        console.warn('Scraping completed, but no rooms were extracted. The container might be empty or content failed to load.');
-        return { rooms: [], message: 'No rooms were extracted from the page.', type: 'info' };
+        console.warn('Scraping completed, but no valid rooms were extracted after filtering. The container might be empty or content failed to load.');
+        return { rooms: [], message: 'No rooms were extracted from the page or valid rooms found after filtering.', type: 'info' };
       }
 
-      return { rooms: rooms, message: 'Rooms scraped successfully.', type: 'success' }; 
+      return { rooms: rooms, message: 'Rooms scraped successfully.', type: 'success' };
     } catch (error) {
       console.error('ScrapingService error:', error);
       throw error;
@@ -182,6 +191,7 @@ class ScrapingService {
       if (page && !page.isClosed()) {
         await page.close();
       }
+      // Certifique-se de que o browser só feche após todas as páginas serem fechadas ou se não houver mais uso
       await BrowserService.closeBrowser(browser);
     }
   }
